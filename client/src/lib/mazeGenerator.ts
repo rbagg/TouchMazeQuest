@@ -21,14 +21,11 @@ export function generateMaze(config: MazeConfig): MazeCell[][] {
     }))
   );
 
-  // Create a simple path-based maze suitable for 4-year-olds
-  // Use a simplified algorithm that creates wide, clear paths
+  // Create progressively challenging mazes
+  const pathComplexity = Math.min(difficulty * 0.5, 1.0); // Increase complexity scaling
   
-  const pathComplexity = Math.min(difficulty * 0.3, 0.8); // Keep paths simple
-  const minPathWidth = difficulty <= 3 ? 2 : 1; // Wider paths for easier levels
-  
-  // Generate a simple L-shaped or straight path for lower levels
-  if (difficulty <= 3) {
+  // Only use simple paths for the very first level
+  if (difficulty <= 1) {
     generateSimplePath(maze, width, height);
   } else {
     generateMazePath(maze, width, height, pathComplexity);
@@ -52,35 +49,41 @@ export function generateMaze(config: MazeConfig): MazeCell[][] {
 }
 
 function generateSimplePath(maze: MazeCell[][], width: number, height: number) {
-  // Create a simple L-shaped path from top-left to bottom-right
+  // Create a simple L-shaped path from top-left to bottom-right for level 1 only
   const startX = 1, startY = 1;
   const goalX = width - 2, goalY = height - 2;
   
-  // Horizontal path
+  // Horizontal path (narrower for more challenge)
   for (let x = startX; x <= goalX; x++) {
     maze[startY][x].isPath = true;
     maze[startY][x].isWall = false;
-    // Add some width to the path
-    if (startY + 1 < height - 1) {
-      maze[startY + 1][x].isPath = true;
-      maze[startY + 1][x].isWall = false;
-    }
   }
   
-  // Vertical path
+  // Vertical path (single width)
   for (let y = startY; y <= goalY; y++) {
     maze[y][goalX].isPath = true;
     maze[y][goalX].isWall = false;
-    // Add some width to the path
-    if (goalX - 1 > 0) {
-      maze[y][goalX - 1].isPath = true;
-      maze[y][goalX - 1].isWall = false;
-    }
   }
 }
 
+function getUnvisitedNeighbors(
+  current: { x: number, y: number },
+  directions: { dx: number, dy: number }[],
+  visited: boolean[][],
+  width: number,
+  height: number
+) {
+  return directions
+    .map(dir => ({ x: current.x + dir.dx, y: current.y + dir.dy }))
+    .filter(pos => 
+      pos.x > 0 && pos.x < width - 1 &&
+      pos.y > 0 && pos.y < height - 1 &&
+      !visited[pos.y][pos.x]
+    );
+}
+
 function generateMazePath(maze: MazeCell[][], width: number, height: number, complexity: number) {
-  // Use a simple recursive backtracking algorithm
+  // Use recursive backtracking to create challenging mazes with dead ends
   const stack: { x: number, y: number }[] = [];
   const visited: boolean[][] = Array(height).fill(null).map(() => Array(width).fill(false));
   
@@ -120,28 +123,63 @@ function generateMazePath(maze: MazeCell[][], width: number, height: number, com
     }
   }
   
-  // Add some random openings for easier navigation
+  // Create additional challenging paths and dead ends
+  addDeadEnds(maze, width, height, complexity);
+  
+  // Minimal random openings to maintain challenge
   addRandomOpenings(maze, width, height, complexity);
 }
 
-function getUnvisitedNeighbors(
-  current: { x: number, y: number },
-  directions: { dx: number, dy: number }[],
-  visited: boolean[][],
-  width: number,
-  height: number
-) {
-  return directions
-    .map(dir => ({ x: current.x + dir.dx, y: current.y + dir.dy }))
-    .filter(pos => 
-      pos.x > 0 && pos.x < width - 1 &&
-      pos.y > 0 && pos.y < height - 1 &&
-      !visited[pos.y][pos.x]
-    );
+function addDeadEnds(maze: MazeCell[][], width: number, height: number, complexity: number) {
+  // Add challenging dead-end paths to confuse players
+  const deadEndCount = Math.floor(complexity * 3);
+  
+  for (let i = 0; i < deadEndCount; i++) {
+    // Find random wall positions to create dead ends from
+    let attempts = 0;
+    while (attempts < 20) {
+      const x = Math.floor(Math.random() * (width - 4)) + 2;
+      const y = Math.floor(Math.random() * (height - 4)) + 2;
+      
+      if (maze[y][x].isWall) {
+        // Check if adjacent to a path
+        const adjacent = [
+          { x: x-1, y }, { x: x+1, y }, { x, y: y-1 }, { x, y: y+1 }
+        ];
+        
+        const hasPathNeighbor = adjacent.some(pos => 
+          pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height &&
+          maze[pos.y][pos.x].isPath
+        );
+        
+        if (hasPathNeighbor) {
+          // Create a short dead-end path
+          const deadEndLength = Math.floor(Math.random() * 3) + 1;
+          let currentX = x, currentY = y;
+          
+          for (let j = 0; j < deadEndLength && currentX > 0 && currentX < width-1 && currentY > 0 && currentY < height-1; j++) {
+            maze[currentY][currentX].isPath = true;
+            maze[currentY][currentX].isWall = false;
+            
+            // Move in a random direction
+            const directions = [
+              { dx: 1, dy: 0 }, { dx: -1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
+            ];
+            const dir = directions[Math.floor(Math.random() * directions.length)];
+            currentX += dir.dx;
+            currentY += dir.dy;
+          }
+          break;
+        }
+      }
+      attempts++;
+    }
+  }
 }
 
 function addRandomOpenings(maze: MazeCell[][], width: number, height: number, complexity: number) {
-  const openingCount = Math.floor((width * height) * complexity * 0.1);
+  // Reduce random openings to make mazes more challenging
+  const openingCount = Math.floor((width * height) * complexity * 0.05);
   
   for (let i = 0; i < openingCount; i++) {
     const x = Math.floor(Math.random() * (width - 2)) + 1;
@@ -156,10 +194,10 @@ function addRandomOpenings(maze: MazeCell[][], width: number, height: number, co
 
 export function getMazeForLevel(level: number): MazeCell[][] {
   const baseSize = 7;
-  const maxSize = 11;
+  const maxSize = 13;
   
-  // Gradually increase maze size and complexity
-  const size = Math.min(baseSize + Math.floor(level / 3), maxSize);
+  // Increase maze size more aggressively and add complexity
+  const size = Math.min(baseSize + Math.floor(level / 2), maxSize);
   
   return generateMaze({
     width: size,
