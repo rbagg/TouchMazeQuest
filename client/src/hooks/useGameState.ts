@@ -55,9 +55,25 @@ export function useGameState() {
     }
 
     setMoveCount(prev => prev + 1);
+    
+    // Update explored cells for fog of war
+    const newExploredCells = new Set(gameState.exploredCells);
+    
+    // Add current position and adjacent cells to explored
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const newX = x + dx;
+        const newY = y + dy;
+        if (newX >= 0 && newX < currentMaze[0]?.length && newY >= 0 && newY < currentMaze.length) {
+          newExploredCells.add(`${newX},${newY}`);
+        }
+      }
+    }
+    
     setGameState(prev => ({
       ...prev,
-      playerPosition: { x, y }
+      playerPosition: { x, y },
+      exploredCells: newExploredCells
     }));
 
     // Check if player reached the goal
@@ -79,14 +95,15 @@ export function useGameState() {
         setShowSuccess(true);
       }, 500);
     }
-  }, [gameState.playerPosition, currentMaze, moveCount, gameState.currentLevel]);
+  }, [gameState.playerPosition, gameState.exploredCells, currentMaze, moveCount, gameState.currentLevel]);
 
   const restartMaze = useCallback(() => {
     setGameState(prev => ({
       ...prev,
       playerPosition: { x: 1, y: 1 },
       isComplete: false,
-      progress: 0
+      progress: 0,
+      exploredCells: new Set(['1,1'])
     }));
     setMoveCount(0);
     setShowSuccess(false);
@@ -124,7 +141,9 @@ export function useGameState() {
         currentLevel: level,
         playerPosition: { x: 1, y: 1 },
         isComplete: false,
-        progress: 0
+        progress: 0,
+        exploredCells: new Set(['1,1']),
+        useFogOfWar: level >= 3 // Enable fog of war starting from level 3
       }));
       setMoveCount(0);
       setShowSuccess(false);

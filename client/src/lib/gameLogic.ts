@@ -9,6 +9,8 @@ export interface GameState {
   isComplete: boolean;
   progress?: number;
   showingHint?: boolean;
+  exploredCells?: Set<string>;
+  useFogOfWar?: boolean;
 }
 
 export const INITIAL_GAME_STATE: GameState = {
@@ -20,11 +22,17 @@ export const INITIAL_GAME_STATE: GameState = {
   isComplete: false,
   progress: 0,
   showingHint: false,
+  exploredCells: new Set(['1,1']),
+  useFogOfWar: false,
 };
 
 export function saveGameState(gameState: GameState): void {
   try {
-    localStorage.setItem('mazeGameProgress', JSON.stringify(gameState));
+    const serializable = {
+      ...gameState,
+      exploredCells: Array.from(gameState.exploredCells || [])
+    };
+    localStorage.setItem('mazeGameProgress', JSON.stringify(serializable));
   } catch (error) {
     console.warn('Failed to save game state:', error);
   }
@@ -35,7 +43,11 @@ export function loadGameState(): GameState {
     const saved = localStorage.getItem('mazeGameProgress');
     if (saved) {
       const parsed = JSON.parse(saved);
-      return { ...INITIAL_GAME_STATE, ...parsed };
+      return { 
+        ...INITIAL_GAME_STATE, 
+        ...parsed,
+        exploredCells: new Set(parsed.exploredCells || ['1,1'])
+      };
     }
   } catch (error) {
     console.warn('Failed to load game state:', error);

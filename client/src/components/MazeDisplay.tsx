@@ -112,7 +112,10 @@ export default function MazeDisplay({
       <div className="mt-4 text-center">
         <p className="text-sm text-gray-600 font-opensans">
           <span className="text-coral mr-1">👆</span>
-          Tap the path to move to the flag!
+          {useFogOfWar 
+            ? "Explore the dark areas to find the flag!" 
+            : "Tap the path to move to the flag!"
+          }
         </p>
       </div>
     </div>

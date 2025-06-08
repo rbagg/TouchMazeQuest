@@ -38,6 +38,8 @@ export default function Game() {
           playerPosition={gameState.playerPosition}
           onCellTouch={movePlayer}
           showHint={gameState.showingHint}
+          exploredCells={gameState.exploredCells}
+          useFogOfWar={gameState.useFogOfWar}
         />
         
         <GameControls 
