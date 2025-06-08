@@ -21,8 +21,8 @@ export function generateMaze(config: MazeConfig): MazeCell[][] {
     }))
   );
 
-  // Create progressively challenging mazes
-  const pathComplexity = Math.min(difficulty * 0.5, 1.0); // Increase complexity scaling
+  // Create highly complex mazes with many branching paths
+  const pathComplexity = Math.min(difficulty * 0.8, 1.0); // Much higher complexity
   
   // Only use simple paths for the very first level
   if (difficulty <= 1) {
@@ -126,7 +126,10 @@ function generateMazePath(maze: MazeCell[][], width: number, height: number, com
   // Create additional challenging paths and dead ends
   addDeadEnds(maze, width, height, complexity);
   
-  // Minimal random openings to maintain challenge
+  // Add extra branching paths for complexity
+  addExtraPaths(maze, width, height, complexity);
+  
+  // More random openings for higher complexity
   addRandomOpenings(maze, width, height, complexity);
 }
 
@@ -177,9 +180,64 @@ function addDeadEnds(maze: MazeCell[][], width: number, height: number, complexi
   }
 }
 
+function addExtraPaths(maze: MazeCell[][], width: number, height: number, difficulty: number) {
+  // Add many additional branching paths to create complex networks
+  const extraPathCount = Math.floor(difficulty * 4);
+  
+  for (let i = 0; i < extraPathCount; i++) {
+    // Find existing path cells to branch from
+    const pathCells = [];
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        if (maze[y][x].isPath) {
+          pathCells.push({ x, y });
+        }
+      }
+    }
+    
+    if (pathCells.length > 0) {
+      const startCell = pathCells[Math.floor(Math.random() * pathCells.length)];
+      const branchLength = Math.floor(Math.random() * 5) + 2;
+      
+      let currentX = startCell.x;
+      let currentY = startCell.y;
+      
+      for (let j = 0; j < branchLength; j++) {
+        const directions = [
+          { dx: 1, dy: 0 }, { dx: -1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 0, dy: -1 },
+          { dx: 2, dy: 0 }, { dx: -2, dy: 0 }, { dx: 0, dy: 2 }, { dx: 0, dy: -2 }
+        ];
+        
+        const validDirections = directions.filter(dir => {
+          const newX = currentX + dir.dx;
+          const newY = currentY + dir.dy;
+          return newX > 0 && newX < width - 1 && newY > 0 && newY < height - 1;
+        });
+        
+        if (validDirections.length > 0) {
+          const dir = validDirections[Math.floor(Math.random() * validDirections.length)];
+          currentX += dir.dx;
+          currentY += dir.dy;
+          
+          maze[currentY][currentX].isPath = true;
+          maze[currentY][currentX].isWall = false;
+          
+          // Also create connecting paths
+          if (Math.abs(dir.dx) === 2 || Math.abs(dir.dy) === 2) {
+            const betweenX = currentX - dir.dx / 2;
+            const betweenY = currentY - dir.dy / 2;
+            maze[betweenY][betweenX].isPath = true;
+            maze[betweenY][betweenX].isWall = false;
+          }
+        }
+      }
+    }
+  }
+}
+
 function addRandomOpenings(maze: MazeCell[][], width: number, height: number, complexity: number) {
-  // Reduce random openings to make mazes more challenging
-  const openingCount = Math.floor((width * height) * complexity * 0.05);
+  // Add more openings for higher complexity
+  const openingCount = Math.floor((width * height) * complexity * 0.1);
   
   for (let i = 0; i < openingCount; i++) {
     const x = Math.floor(Math.random() * (width - 2)) + 1;
@@ -193,11 +251,11 @@ function addRandomOpenings(maze: MazeCell[][], width: number, height: number, co
 }
 
 export function getMazeForLevel(level: number): MazeCell[][] {
-  const baseSize = 7;
-  const maxSize = 13;
+  const baseSize = 9;
+  const maxSize = 17;
   
-  // Increase maze size more aggressively and add complexity
-  const size = Math.min(baseSize + Math.floor(level / 2), maxSize);
+  // Create much larger and more complex mazes
+  const size = Math.min(baseSize + level, maxSize);
   
   return generateMaze({
     width: size,

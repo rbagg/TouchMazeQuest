@@ -7,6 +7,8 @@ export interface MazeCell {
   isPath: boolean;
   isStart: boolean;
   isGoal: boolean;
+  isVisible?: boolean;
+  isExplored?: boolean;
 }
 
 export interface Position {
@@ -19,13 +21,17 @@ interface MazeDisplayProps {
   playerPosition: Position;
   onCellTouch: (x: number, y: number) => void;
   showHint?: boolean;
+  exploredCells?: Set<string>;
+  useFogOfWar?: boolean;
 }
 
 export default function MazeDisplay({ 
   maze, 
   playerPosition, 
   onCellTouch, 
-  showHint 
+  showHint,
+  exploredCells = new Set(),
+  useFogOfWar = false
 }: MazeDisplayProps) {
   const handleCellClick = (x: number, y: number, cell: MazeCell) => {
     if (cell.isPath || cell.isGoal) {
@@ -38,33 +44,67 @@ export default function MazeDisplay({
     }
   };
 
+  const isCellVisible = (x: number, y: number) => {
+    if (!useFogOfWar) return true;
+    
+    // Always show current player position and immediate neighbors
+    const distance = Math.abs(x - playerPosition.x) + Math.abs(y - playerPosition.y);
+    if (distance <= 1) return true;
+    
+    // Show explored cells
+    return exploredCells.has(`${x},${y}`);
+  };
+
+  const isCellExplored = (x: number, y: number) => {
+    if (!useFogOfWar) return true;
+    return exploredCells.has(`${x},${y}`);
+  };
+
   return (
     <div className="bg-white rounded-2xl p-6 mb-4 shadow-lg">
       <div className="maze-container">
         <div className="grid gap-1 aspect-square" style={{ gridTemplateColumns: `repeat(${maze[0]?.length || 7}, 1fr)` }}>
           {maze.map((row, y) =>
-            row.map((cell, x) => (
-              <div
-                key={`${x}-${y}`}
-                className={`
-                  maze-cell aspect-square relative cursor-pointer touch-feedback
-                  ${cell.isWall ? 'maze-wall' : 'maze-path'}
-                  ${showHint && cell.isPath ? 'bg-yellow-200' : ''}
-                `}
-                onClick={() => handleCellClick(x, y, cell)}
-                onTouchStart={() => handleCellClick(x, y, cell)}
-              >
-                {playerPosition.x === x && playerPosition.y === y && (
-                  <div className="player-dot w-8 h-8 absolute inset-1 pulse-animation" />
-                )}
-                
-                {cell.isGoal && (
-                  <div className="goal-flag absolute inset-1">
-                    <Flag className="w-full h-full text-white" />
-                  </div>
-                )}
-              </div>
-            ))
+            row.map((cell, x) => {
+              const isVisible = isCellVisible(x, y);
+              const isExplored = isCellExplored(x, y);
+              
+              return (
+                <div
+                  key={`${x}-${y}`}
+                  className={`
+                    maze-cell aspect-square relative cursor-pointer touch-feedback
+                    ${!isVisible 
+                      ? 'bg-gray-800' 
+                      : cell.isWall 
+                        ? 'maze-wall' 
+                        : 'maze-path'
+                    }
+                    ${!isVisible && isExplored ? 'bg-gray-600' : ''}
+                    ${showHint && cell.isPath && isVisible ? 'bg-yellow-200' : ''}
+                    ${!isVisible ? 'opacity-80' : ''}
+                  `}
+                  onClick={() => isVisible && handleCellClick(x, y, cell)}
+                  onTouchStart={() => isVisible && handleCellClick(x, y, cell)}
+                >
+                  {playerPosition.x === x && playerPosition.y === y && (
+                    <div className="player-dot w-8 h-8 absolute inset-1 pulse-animation" />
+                  )}
+                  
+                  {cell.isGoal && isVisible && (
+                    <div className="goal-flag absolute inset-1">
+                      <Flag className="w-full h-full text-white" />
+                    </div>
+                  )}
+                  
+                  {!isVisible && (
+                    <div className="absolute inset-0 bg-gray-900 opacity-90 flex items-center justify-center text-gray-400 text-xs">
+                      ?
+                    </div>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
       </div>
