@@ -51,6 +51,13 @@ export default function MazeDisplay({
     const distance = Math.abs(x - playerPosition.x) + Math.abs(y - playerPosition.y);
     if (distance <= 1) return true;
     
+    // Find and always show the goal area (flag and surrounding cells)
+    const goalCell = maze.flat().find(cell => cell.isGoal);
+    if (goalCell) {
+      const goalDistance = Math.abs(x - goalCell.x) + Math.abs(y - goalCell.y);
+      if (goalDistance <= 2) return true; // Show goal and 2 blocks around it
+    }
+    
     // Show explored cells
     return exploredCells.has(`${x},${y}`);
   };
