@@ -75,14 +75,14 @@ export default function MazeDisplay({
                   className={`
                     maze-cell aspect-square relative cursor-pointer touch-feedback
                     ${!isVisible 
-                      ? 'bg-gray-800' 
+                      ? 'bg-gray-900' 
                       : cell.isWall 
                         ? 'maze-wall' 
                         : 'maze-path'
                     }
-                    ${!isVisible && isExplored ? 'bg-gray-600' : ''}
-                    ${showHint && cell.isPath && isVisible ? 'bg-yellow-200' : ''}
-                    ${!isVisible ? 'opacity-80' : ''}
+                    ${!isVisible && isExplored ? 'bg-gray-700' : ''}
+                    ${showHint && cell.isPath && isVisible ? 'bg-yellow-300' : ''}
+                    ${!isVisible ? 'opacity-90' : ''}
                   `}
                   onClick={() => isVisible && handleCellClick(x, y, cell)}
                   onTouchStart={() => isVisible && handleCellClick(x, y, cell)}
@@ -98,7 +98,7 @@ export default function MazeDisplay({
                   )}
                   
                   {!isVisible && (
-                    <div className="absolute inset-0 bg-gray-900 opacity-90 flex items-center justify-center text-gray-400 text-xs">
+                    <div className="absolute inset-0 bg-black opacity-95 flex items-center justify-center text-gray-500 text-xs">
                       ?
                     </div>
                   )}

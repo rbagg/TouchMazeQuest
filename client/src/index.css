@@ -134,11 +134,11 @@
 }
 
 .maze-path {
-  background-color: hsl(210, 40%, 98%);
+  background-color: var(--purple);
 }
 
 .maze-wall {
-  background-color: var(--purple);
+  background-color: hsl(210, 40%, 98%);
 }
 
 .player-dot {

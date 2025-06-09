@@ -126,7 +126,9 @@ export function useGameState() {
         currentLevel: newLevel,
         playerPosition: { x: 1, y: 1 },
         isComplete: false,
-        progress: 0
+        progress: 0,
+        exploredCells: new Set(['1,1']),
+        useFogOfWar: newLevel >= 3 // Enable fog of war starting from level 3
       }));
       setMoveCount(0);
     }
