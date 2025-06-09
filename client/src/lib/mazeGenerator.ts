@@ -45,7 +45,102 @@ export function generateMaze(config: MazeConfig): MazeCell[][] {
   maze[goalY][goalX].isPath = true;
   maze[goalY][goalX].isWall = false;
   
+  // Ensure there's a valid path from start to goal
+  if (!hasValidPath(maze, startX, startY, goalX, goalY, width, height)) {
+    // Create a guaranteed path if none exists
+    createGuaranteedPath(maze, startX, startY, goalX, goalY, width, height);
+  }
+  
   return maze;
+}
+
+function hasValidPath(
+  maze: MazeCell[][], 
+  startX: number, 
+  startY: number, 
+  goalX: number, 
+  goalY: number, 
+  width: number, 
+  height: number
+): boolean {
+  // Use BFS to check if there's a path from start to goal
+  const visited = Array(height).fill(null).map(() => Array(width).fill(false));
+  const queue: { x: number, y: number }[] = [{ x: startX, y: startY }];
+  visited[startY][startX] = true;
+  
+  const directions = [
+    { dx: 0, dy: -1 }, // Up
+    { dx: 1, dy: 0 },  // Right
+    { dx: 0, dy: 1 },  // Down
+    { dx: -1, dy: 0 }  // Left
+  ];
+  
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    
+    if (current.x === goalX && current.y === goalY) {
+      return true;
+    }
+    
+    for (const dir of directions) {
+      const newX = current.x + dir.dx;
+      const newY = current.y + dir.dy;
+      
+      if (
+        newX >= 0 && newX < width &&
+        newY >= 0 && newY < height &&
+        !visited[newY][newX] &&
+        (maze[newY][newX].isPath || maze[newY][newX].isGoal)
+      ) {
+        visited[newY][newX] = true;
+        queue.push({ x: newX, y: newY });
+      }
+    }
+  }
+  
+  return false;
+}
+
+function createGuaranteedPath(
+  maze: MazeCell[][], 
+  startX: number, 
+  startY: number, 
+  goalX: number, 
+  goalY: number, 
+  width: number, 
+  height: number
+): void {
+  // Create a direct path from start to goal
+  let currentX = startX;
+  let currentY = startY;
+  
+  // Move horizontally first
+  while (currentX !== goalX) {
+    if (currentX < goalX) {
+      currentX++;
+    } else {
+      currentX--;
+    }
+    
+    if (currentX >= 0 && currentX < width && currentY >= 0 && currentY < height) {
+      maze[currentY][currentX].isPath = true;
+      maze[currentY][currentX].isWall = false;
+    }
+  }
+  
+  // Then move vertically
+  while (currentY !== goalY) {
+    if (currentY < goalY) {
+      currentY++;
+    } else {
+      currentY--;
+    }
+    
+    if (currentX >= 0 && currentX < width && currentY >= 0 && currentY < height) {
+      maze[currentY][currentX].isPath = true;
+      maze[currentY][currentX].isWall = false;
+    }
+  }
 }
 
 function generateSimplePath(maze: MazeCell[][], width: number, height: number) {
