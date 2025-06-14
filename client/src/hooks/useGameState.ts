@@ -128,7 +128,7 @@ export function useGameState() {
         isComplete: false,
         progress: 0,
         exploredCells: new Set(['1,1']),
-        useFogOfWar: newLevel >= 3 // Enable fog of war starting from level 3
+        useFogOfWar: newLevel >= 8 // Enable fog of war starting from level 8
       }));
       setMoveCount(0);
     }
@@ -145,7 +145,7 @@ export function useGameState() {
         isComplete: false,
         progress: 0,
         exploredCells: new Set(['1,1']),
-        useFogOfWar: level >= 3 // Enable fog of war starting from level 3
+        useFogOfWar: level >= 8 // Enable fog of war starting from level 8
       }));
       setMoveCount(0);
       setShowSuccess(false);
