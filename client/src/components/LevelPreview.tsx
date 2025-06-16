@@ -1,4 +1,4 @@
-import { Lock, Star } from "lucide-react";
+import { Star } from "lucide-react";
 
 interface LevelPreviewProps {
   currentLevel: number;
@@ -7,54 +7,71 @@ interface LevelPreviewProps {
   onSelectLevel: (level: number) => void;
 }
 
+// Helper function to get level style names
+function getLevelStyleName(level: number): string {
+  if (level <= 3) return "Simple Path";
+  if (level <= 6) return "Choose Route";  
+  if (level <= 9) return "Spiral";
+  if (level <= 12) return "Maze";
+  return "Advanced";
+}
+
 export default function LevelPreview({ 
   currentLevel, 
   unlockedLevels, 
   completedLevels, 
   onSelectLevel 
 }: LevelPreviewProps) {
-  const levels = Array.from({ length: 10 }, (_, i) => i + 1);
-  
-  const isLevelUnlocked = (level: number) => level <= unlockedLevels;
-  const isLevelCompleted = (level: number) => completedLevels.includes(level);
-  
+  const maxLevels = 15; // Increased from 10
+  const availableLevels = Array.from({ length: Math.min(unlockedLevels, maxLevels) }, (_, i) => i + 1);
+
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-lg">
-      <h3 className="font-fredoka text-lg text-dark-gray mb-3 text-center">
-        Choose Your Adventure
-      </h3>
-      <div className="grid grid-cols-5 gap-2">
-        {levels.map((level) => {
-          const unlocked = isLevelUnlocked(level);
-          const completed = isLevelCompleted(level);
-          const current = level === currentLevel;
-          
-          return (
+    <div className="bg-white rounded-xl p-4 shadow-md">
+      <h3 className="text-lg font-bold text-gray-700 mb-3 text-center">Choose Level</h3>
+
+      {/* Mobile-optimized scrollable level selection */}
+      <div className="overflow-x-auto pb-2">
+        <div className="flex gap-3 min-w-max">
+          {availableLevels.map(level => (
             <button
               key={level}
+              onClick={() => onSelectLevel(level)}
               className={`
-                relative overflow-hidden cursor-pointer transition-all duration-200 transform active:scale-95 touch-feedback
-                font-fredoka text-sm py-3 rounded-xl text-center
-                ${unlocked 
-                  ? current 
-                    ? 'bg-purple text-white ring-2 ring-sunny' 
-                    : 'bg-coral text-white hover:bg-coral'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                level-button flex-shrink-0 rounded-lg font-bold text-sm flex flex-col items-center justify-center touch-manipulation transition-all duration-200
+                ${currentLevel === level 
+                  ? 'bg-purple-500 text-white shadow-lg scale-105' 
+                  : completedLevels.includes(level)
+                    ? 'bg-green-400 text-white hover:bg-green-500'
+                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                 }
               `}
-              onClick={() => unlocked && onSelectLevel(level)}
-              disabled={!unlocked}
+              style={{ 
+                minWidth: '70px', 
+                minHeight: '70px',
+                width: '70px',
+                height: '70px'
+              }}
             >
-              <div className="relative z-10">{level}</div>
-              {completed && (
-                <Star className="absolute top-1 right-1 w-3 h-3 text-sunny fill-sunny" />
-              )}
-              {!unlocked && (
-                <Lock className="absolute inset-0 m-auto w-4 h-4" />
+              <span className="text-lg font-bold">{level}</span>
+              <span className="text-xs mt-1 leading-tight text-center">
+                {getLevelStyleName(level)}
+              </span>
+              {completedLevels.includes(level) && (
+                <Star className="w-3 h-3 mt-1" fill="currentColor" />
               )}
             </button>
-          );
-        })}
+          ))}
+        </div>
+      </div>
+
+      {/* Show progress */}
+      <div className="mt-3 text-center text-sm text-gray-600">
+        <span className="font-semibold">{completedLevels.length}</span> of <span className="font-semibold">{unlockedLevels}</span> levels completed
+      </div>
+
+      {/* Show current level info */}
+      <div className="mt-2 text-center text-xs text-gray-500">
+        Current: Level {currentLevel} - {getLevelStyleName(currentLevel)}
       </div>
     </div>
   );

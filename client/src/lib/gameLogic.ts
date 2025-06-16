@@ -23,7 +23,7 @@ export const INITIAL_GAME_STATE: GameState = {
   progress: 0,
   showingHint: false,
   exploredCells: new Set(['1,1']),
-  useFogOfWar: false,
+  useFogOfWar: false, // Start with fog of war disabled
 };
 
 export function saveGameState(gameState: GameState): void {
@@ -69,13 +69,13 @@ export function isValidMove(
   // Check if positions are adjacent
   const dx = Math.abs(to.x - from.x);
   const dy = Math.abs(to.y - from.y);
-  
+
   if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
     // Check if target cell is walkable
     const cell = maze[to.y]?.[to.x];
     return cell && (cell.isPath || cell.isGoal);
   }
-  
+
   return false;
 }
 

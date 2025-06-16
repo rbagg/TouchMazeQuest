@@ -25,13 +25,18 @@
   --destructive-foreground: hsl(210, 40%, 98%);
   --ring: hsl(222, 84%, 56%);
   --radius: 0.5rem;
-  
+
   /* Custom game colors */
   --coral: hsl(0, 82%, 70%);
   --mint: hsl(176, 60%, 56%);
   --sunny: hsl(50, 100%, 70%);
   --purple: hsl(233, 68%, 60%);
   --dark-gray: hsl(217, 33%, 17%);
+
+  /* New blue path color */
+  --path-blue: hsl(212, 92%, 55%);
+  --path-blue-hover: hsl(212, 92%, 60%);
+  --path-blue-border: hsl(212, 92%, 45%);
 }
 
 .dark {
@@ -71,59 +76,59 @@
   .font-fredoka {
     font-family: 'Fredoka One', cursive;
   }
-  
+
   .font-opensans {
     font-family: 'Open Sans', sans-serif;
   }
-  
+
   .text-coral {
     color: var(--coral);
   }
-  
+
   .text-mint {
     color: var(--mint);
   }
-  
+
   .text-sunny {
     color: var(--sunny);
   }
-  
+
   .text-purple {
     color: var(--purple);
   }
-  
+
   .text-dark-gray {
     color: var(--dark-gray);
   }
-  
+
   .bg-coral {
     background-color: var(--coral);
   }
-  
+
   .bg-mint {
     background-color: var(--mint);
   }
-  
+
   .bg-sunny {
     background-color: var(--sunny);
   }
-  
+
   .bg-purple {
     background-color: var(--purple);
   }
-  
+
   .bg-dark-gray {
     background-color: var(--dark-gray);
   }
-  
+
   .hover\:bg-coral:hover {
     background-color: hsl(0, 82%, 65%);
   }
-  
+
   .hover\:bg-mint:hover {
     background-color: hsl(176, 60%, 51%);
   }
-  
+
   .hover\:bg-sunny:hover {
     background-color: hsl(50, 100%, 65%);
   }
@@ -133,12 +138,19 @@
   transition: all 0.2s ease;
 }
 
+/* UPDATED: Blue paths instead of purple */
 .maze-path {
-  background-color: var(--purple);
+  background-color: var(--path-blue);
+  border: 2px solid var(--path-blue-border);
+}
+
+.maze-path:hover {
+  background-color: var(--path-blue-hover);
 }
 
 .maze-wall {
   background-color: hsl(210, 40%, 98%);
+  border: 1px solid hsl(210, 40%, 90%);
 }
 
 .player-dot {
@@ -202,15 +214,32 @@
   transform: scale(0.95);
 }
 
-/* Ensure proper touch targets for mobile */
+/* NEW: Mobile touch optimization */
+.touch-manipulation {
+  touch-action: manipulation; /* Removes 300ms click delay */
+}
+
+/* UPDATED: Enhanced mobile touch targets */
 @media (max-width: 768px) {
   .maze-cell {
-    min-height: 40px;
-    min-width: 40px;
+    min-height: 50px; /* Increased from 40px */
+    min-width: 50px;
   }
-  
+
   .player-dot {
-    min-width: 32px;
-    min-height: 32px;
+    min-width: 40px; /* Increased from 32px */
+    min-height: 40px;
+  }
+
+  /* Ensure buttons are large enough for fingers */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Make level selection buttons bigger on mobile */
+  .level-button {
+    min-height: 60px;
+    min-width: 60px;
   }
 }

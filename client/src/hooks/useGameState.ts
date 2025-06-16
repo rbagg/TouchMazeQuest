@@ -55,10 +55,10 @@ export function useGameState() {
     }
 
     setMoveCount(prev => prev + 1);
-    
+
     // Update explored cells for fog of war
     const newExploredCells = new Set(gameState.exploredCells);
-    
+
     // Add current position and adjacent cells to explored
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
@@ -69,7 +69,7 @@ export function useGameState() {
         }
       }
     }
-    
+
     setGameState(prev => ({
       ...prev,
       playerPosition: { x, y },
@@ -79,7 +79,7 @@ export function useGameState() {
     // Check if player reached the goal
     if (targetCell.isGoal) {
       const levelScore = calculateLevelScore(gameState.currentLevel, moveCount + 1);
-      
+
       setGameState(prev => ({
         ...prev,
         completedLevels: prev.completedLevels.includes(prev.currentLevel)
@@ -90,7 +90,7 @@ export function useGameState() {
         isComplete: true,
         progress: 100
       }));
-      
+
       setTimeout(() => {
         setShowSuccess(true);
       }, 500);
@@ -113,12 +113,12 @@ export function useGameState() {
     setGameState(prev => ({ ...prev, showingHint: true }));
     setTimeout(() => {
       setGameState(prev => ({ ...prev, showingHint: false }));
-    }, 2000);
+    }, 3000); // Longer hint duration for children
   }, []);
 
   const nextLevel = useCallback(() => {
     const newLevel = gameState.currentLevel + 1;
-    if (newLevel <= 10) {
+    if (newLevel <= 15) { // Increased max levels
       const newMaze = getMazeForLevel(newLevel);
       setCurrentMaze(newMaze);
       setGameState(prev => ({
@@ -128,7 +128,7 @@ export function useGameState() {
         isComplete: false,
         progress: 0,
         exploredCells: new Set(['1,1']),
-        useFogOfWar: newLevel >= 8 // Enable fog of war starting from level 8
+        useFogOfWar: newLevel >= 12 // CHANGED: Enable fog of war starting from level 12 instead of 8
       }));
       setMoveCount(0);
     }
@@ -145,7 +145,7 @@ export function useGameState() {
         isComplete: false,
         progress: 0,
         exploredCells: new Set(['1,1']),
-        useFogOfWar: level >= 8 // Enable fog of war starting from level 8
+        useFogOfWar: level >= 12 // CHANGED: Enable fog of war starting from level 12 instead of 8
       }));
       setMoveCount(0);
       setShowSuccess(false);

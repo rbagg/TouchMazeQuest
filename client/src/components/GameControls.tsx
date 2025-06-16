@@ -7,20 +7,23 @@ interface GameControlsProps {
 
 export default function GameControls({ onRestart, onHint }: GameControlsProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 mb-6">
-      <button 
-        className="bg-sunny hover:bg-sunny text-dark-gray font-fredoka text-lg py-4 px-6 rounded-2xl shadow-lg transition-all duration-200 transform active:scale-95 touch-feedback" 
+    <div className="grid grid-cols-2 gap-4 mb-6">
+      <button
         onClick={onRestart}
+        className="bg-orange-400 hover:bg-orange-500 active:bg-orange-600 text-white font-bold py-4 px-4 rounded-lg flex items-center justify-center gap-2 text-lg touch-manipulation transition-colors duration-150"
+        style={{ minHeight: '60px' }} // Ensure mobile-friendly size
       >
-        <RotateCcw className="w-5 h-5 mr-2 inline" />
-        Restart
+        <RotateCcw size={24} />
+        <span>Try Again</span>
       </button>
-      <button 
-        className="bg-mint hover:bg-mint text-white font-fredoka text-lg py-4 px-6 rounded-2xl shadow-lg transition-all duration-200 transform active:scale-95 touch-feedback" 
+
+      <button
         onClick={onHint}
+        className="bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 text-white font-bold py-4 px-4 rounded-lg flex items-center justify-center gap-2 text-lg touch-manipulation transition-colors duration-150"
+        style={{ minHeight: '60px' }} // Ensure mobile-friendly size
       >
-        <Lightbulb className="w-5 h-5 mr-2 inline" />
-        Hint
+        <Lightbulb size={24} />
+        <span>Hint</span>
       </button>
     </div>
   );
