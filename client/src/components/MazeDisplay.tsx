@@ -69,25 +69,25 @@ export default function MazeDisplay({
 
   // Calculate dynamic cell size for mobile optimization
   const getCellSize = () => {
-    if (typeof window === 'undefined') return '50px';
+    if (typeof window === 'undefined') return '35px';
 
     const screenWidth = window.innerWidth;
-    const padding = 48; // Total padding from container
+    const padding = 16; // Reduced padding from container
     const maxSize = screenWidth - padding;
     const gridSize = maze[0]?.length || 7;
     const cellSize = Math.floor(maxSize / gridSize);
-    const finalSize = Math.max(50, Math.min(cellSize, 80)); // Between 50px and 80px
+    const finalSize = Math.max(30, Math.min(cellSize, 60)); // Smaller range for mobile
     return `${finalSize}px`;
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 mb-4 shadow-lg">
+    <div className="bg-white rounded-lg p-2 mb-2 shadow-lg">
       <div className="maze-container overflow-hidden">
         <div 
-          className="grid gap-1 mx-auto" 
+          className="grid gap-0.5 mx-auto" 
           style={{ 
             gridTemplateColumns: `repeat(${maze[0]?.length || 7}, ${getCellSize()})`,
-            maxWidth: '100vw',
+            maxWidth: 'calc(100vw - 16px)',
             justifyContent: 'center'
           }}
         >
@@ -112,8 +112,8 @@ export default function MazeDisplay({
                     ${!isVisible ? 'opacity-90' : ''}
                   `}
                   style={{ 
-                    minHeight: '50px', 
-                    minWidth: '50px',
+                    minHeight: '30px', 
+                    minWidth: '30px',
                     height: getCellSize(),
                     width: getCellSize()
                   }}
@@ -142,12 +142,12 @@ export default function MazeDisplay({
         </div>
       </div>
 
-      <div className="mt-4 text-center">
-        <p className="text-base text-gray-600 font-opensans font-semibold">
+      <div className="mt-2 text-center">
+        <p className="text-sm text-gray-600 font-opensans font-semibold">
           <span className="text-coral mr-1">👆</span>
           {useFogOfWar 
-            ? "Explore the dark areas to find the flag!" 
-            : "Tap the blue squares to move to the flag!"
+            ? "Find the flag!" 
+            : "Tap blue squares to reach the flag!"
           }
         </p>
       </div>
