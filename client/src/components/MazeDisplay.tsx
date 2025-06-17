@@ -121,12 +121,12 @@ export default function MazeDisplay({
                   onTouchStart={() => isVisible && handleCellClick(x, y, cell)}
                 >
                   {playerPosition.x === x && playerPosition.y === y && (
-                    <div className="player-dot w-6 h-6 absolute inset-2 pulse-animation rounded-full" />
+                    <div className="player-dot w-4 h-4 absolute inset-3 pulse-animation rounded-full" />
                   )}
 
                   {cell.isGoal && isVisible && (
-                    <div className="goal-flag absolute inset-2 bg-mint rounded-lg flex items-center justify-center">
-                      <Flag className="w-4 h-4 text-white" />
+                    <div className="goal-flag absolute inset-1 bg-mint rounded-lg flex items-center justify-center">
+                      <Flag className="w-6 h-6 text-white" />
                     </div>
                   )}
 
