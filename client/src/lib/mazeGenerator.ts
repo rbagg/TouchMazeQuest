@@ -132,62 +132,60 @@ function generateBranchingPath(maze: MazeCell[][], width: number, height: number
   }
 }
 
-// NEW: Spiral path for level 4
+// NEW: Spiral path for level 4 - with multiple routes
 function generateSpiralPath(maze: MazeCell[][], width: number, height: number) {
   const startX = 1, startY = 1;
   const goalX = width - 2, goalY = height - 2;
 
-  // Create a simple spiral path - not filling everything
-  let currentX = startX;
-  let currentY = startY;
-  
-  // Go right across the top
-  while (currentX < goalX) {
-    maze[currentY][currentX].isPath = true;
-    maze[currentY][currentX].isWall = false;
-    currentX++;
+  // Create outer perimeter path
+  for (let x = startX; x <= goalX; x++) {
+    maze[startY][x].isPath = true;
+    maze[startY][x].isWall = false;
   }
-  
-  // Go down the right side
-  while (currentY < goalY) {
-    maze[currentY][currentX].isPath = true;
-    maze[currentY][currentX].isWall = false;
-    currentY++;
+  for (let y = startY; y <= goalY; y++) {
+    maze[y][goalX].isPath = true;
+    maze[y][goalX].isWall = false;
   }
-  
-  // Go left across the bottom
-  while (currentX > startX + 2) {
-    maze[currentY][currentX].isPath = true;
-    maze[currentY][currentX].isWall = false;
-    currentX--;
+  for (let x = goalX; x >= startX; x--) {
+    maze[goalY][x].isPath = true;
+    maze[goalY][x].isWall = false;
   }
-  
-  // Go up the left side
-  while (currentY > startY + 2) {
-    maze[currentY][currentX].isPath = true;
-    maze[currentY][currentX].isWall = false;
-    currentY--;
+  for (let y = goalY; y >= startY; y--) {
+    maze[y][startX].isPath = true;
+    maze[y][startX].isWall = false;
   }
-  
-  // Create inner spiral
-  currentX++;
-  while (currentX < goalX - 1) {
-    maze[currentY][currentX].isPath = true;
-    maze[currentY][currentX].isWall = false;
-    currentX++;
+
+  // Create inner spiral path for alternative route
+  if (width > 6 && height > 6) {
+    const innerStartX = startX + 2;
+    const innerStartY = startY + 2;
+    const innerGoalX = goalX - 2;
+    const innerGoalY = goalY - 2;
+
+    for (let x = innerStartX; x <= innerGoalX; x++) {
+      maze[innerStartY][x].isPath = true;
+      maze[innerStartY][x].isWall = false;
+    }
+    for (let y = innerStartY; y <= innerGoalY; y++) {
+      maze[y][innerGoalX].isPath = true;
+      maze[y][innerGoalX].isWall = false;
+    }
   }
-  
-  while (currentY < goalY - 1) {
-    maze[currentY][currentX].isPath = true;
-    maze[currentY][currentX].isWall = false;
-    currentY++;
-  }
-  
-  // Add some connecting paths for variety
+
+  // Add connecting paths between outer and inner
+  const midX = Math.floor((startX + goalX) / 2);
   const midY = Math.floor((startY + goalY) / 2);
-  for (let x = startX + 2; x < goalX - 1; x++) {
+  
+  // Horizontal connector
+  for (let x = startX; x <= goalX; x++) {
     maze[midY][x].isPath = true;
     maze[midY][x].isWall = false;
+  }
+  
+  // Vertical connector
+  for (let y = startY; y <= goalY; y++) {
+    maze[y][midX].isPath = true;
+    maze[y][midX].isWall = false;
   }
 }
 
