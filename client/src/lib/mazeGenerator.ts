@@ -194,36 +194,47 @@ function generateZigZagPath(maze: MazeCell[][], width: number, height: number) {
   const startX = 1, startY = 1;
   const goalX = width - 2, goalY = height - 2;
 
-  // Create a zigzag pattern
-  let currentX = startX;
-  let currentY = startY;
-  let goingRight = true;
-
-  while (currentY <= goalY) {
-    // Make current cell a path
-    maze[currentY][currentX].isPath = true;
-    maze[currentY][currentX].isWall = false;
-
-    if (goingRight) {
-      if (currentX < goalX) {
-        currentX++;
-      } else {
-        currentY++;
-        goingRight = false;
+  // Create zigzag rows - alternating left to right and right to left
+  for (let y = startY; y <= goalY; y += 2) {
+    if (y % 4 === 1) {
+      // Go left to right
+      for (let x = startX; x <= goalX; x++) {
+        maze[y][x].isPath = true;
+        maze[y][x].isWall = false;
       }
     } else {
-      if (currentX > startX) {
-        currentX--;
-      } else {
-        currentY++;
-        goingRight = true;
+      // Go right to left
+      for (let x = goalX; x >= startX; x--) {
+        maze[y][x].isPath = true;
+        maze[y][x].isWall = false;
       }
     }
   }
 
-  // Ensure goal is reachable
-  maze[goalY][goalX].isPath = true;
-  maze[goalY][goalX].isWall = false;
+  // Connect the zigzag rows with vertical paths
+  for (let y = startY; y < goalY; y += 2) {
+    if (y + 2 <= goalY) {
+      // Connect current row to next row
+      if (y % 4 === 1) {
+        // Connect from right side
+        maze[y + 1][goalX].isPath = true;
+        maze[y + 1][goalX].isWall = false;
+      } else {
+        // Connect from left side
+        maze[y + 1][startX].isPath = true;
+        maze[y + 1][startX].isWall = false;
+      }
+    }
+  }
+
+  // Add some shortcut paths for variety
+  const midY = Math.floor((startY + goalY) / 2);
+  for (let x = startX + 2; x <= goalX - 2; x += 2) {
+    for (let y = startY + 1; y <= goalY - 1; y++) {
+      maze[y][x].isPath = true;
+      maze[y][x].isWall = false;
+    }
+  }
 }
 
 // NEW: Progressive maze style generation with faster progression

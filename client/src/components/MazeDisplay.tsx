@@ -125,14 +125,11 @@ export default function MazeDisplay({
                       className="player-dot pulse-animation rounded-full" 
                       style={{
                         position: 'absolute',
-                        top: '6px',
-                        left: '6px',
-                        right: '6px',
-                        bottom: '6px',
-                        minWidth: '20px',
-                        minHeight: '20px',
-                        maxWidth: '24px',
-                        maxHeight: '24px'
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '20px',
+                        height: '20px'
                       }}
                     />
                   )}
