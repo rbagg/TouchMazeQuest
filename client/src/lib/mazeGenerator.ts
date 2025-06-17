@@ -498,4 +498,9 @@ export function getMazeForLevel(level: number): MazeCell[][] {
   // Create much larger and more complex mazes
   const size = Math.min(baseSize + level, maxSize);
 
-  return generateMaze
+  return generateMaze({
+    width: size,
+    height: size,
+    difficulty: Math.min(level, 10)
+  });
+}
