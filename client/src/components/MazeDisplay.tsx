@@ -121,17 +121,7 @@ export default function MazeDisplay({
                   onTouchStart={() => isVisible && handleCellClick(x, y, cell)}
                 >
                   {playerPosition.x === x && playerPosition.y === y && (
-                    <div 
-                      className="player-dot pulse-animation rounded-full" 
-                      style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: '20px',
-                        height: '20px'
-                      }}
-                    />
+                    <div className="absolute inset-1 bg-pink-400 rounded-md pulse-animation border-2 border-pink-600" />
                   )}
 
                   {cell.isGoal && isVisible && (
