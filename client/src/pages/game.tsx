@@ -28,10 +28,7 @@ export default function Game() {
       </div>
       
       <main className="w-full px-2 py-2 pb-20">
-        {/* Debug progress */}
-        <div className="bg-yellow-200 p-2 mb-2 rounded text-sm">
-          Progress: {Math.round(gameState.progress || 0)}%
-        </div>
+
         
         <MazeDisplay 
           maze={currentMaze}
@@ -43,18 +40,12 @@ export default function Game() {
         />
         
         {/* Debug controls */}
-        <div className="grid grid-cols-2 gap-2 mt-2">
+        <div className="mt-2">
           <button
             onClick={restartMaze}
-            className="bg-orange-500 text-white p-3 rounded-lg font-bold text-sm"
+            className="w-full bg-orange-500 text-white p-3 rounded-lg font-bold text-sm"
           >
-            🔄 Restart
-          </button>
-          <button
-            onClick={showHint}
-            className="bg-yellow-500 text-white p-3 rounded-lg font-bold text-sm"
-          >
-            💡 Hint
+            🔄 Restart Level
           </button>
         </div>
         
@@ -62,7 +53,7 @@ export default function Game() {
         <div className="mt-2 p-2 bg-green-200 rounded">
           <p className="font-bold mb-1 text-sm">Select Level:</p>
           <div className="grid grid-cols-5 gap-1">
-            {[1,2,3,4,5].map(level => (
+            {[1,2,3,4,5,6,7,8,9,10].map(level => (
               <button
                 key={level}
                 onClick={() => selectLevel(level)}
