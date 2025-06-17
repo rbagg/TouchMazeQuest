@@ -27,7 +27,7 @@ export default function Game() {
         Maze Adventure - Level {gameState.currentLevel} - Score: {gameState.totalScore}
       </div>
       
-      <main className="w-full px-2 py-2 pb-20">
+      <main className="w-full px-3 py-3 pb-20 max-w-sm mx-auto">
 
         
         <MazeDisplay 

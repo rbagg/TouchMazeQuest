@@ -126,7 +126,7 @@ export default function MazeDisplay({
 
                   {cell.isGoal && isVisible && (
                     <div className="goal-flag absolute inset-1 bg-mint rounded-lg flex items-center justify-center">
-                      <Flag className="w-6 h-6 text-white" />
+                      <Flag className="w-5 h-5 text-white" />
                     </div>
                   )}
 

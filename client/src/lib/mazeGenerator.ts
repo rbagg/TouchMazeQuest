@@ -382,8 +382,10 @@ function generateMazePath(maze: MazeCell[][], width: number, height: number, com
       
       maze[current.y][current.x].isPath = true;
       maze[current.y][current.x].isWall = false;
-      maze[wallY][wallX].isPath = true;
-      maze[wallY][wallX].isWall = false;
+      if (Number.isInteger(wallX) && Number.isInteger(wallY)) {
+        maze[wallY][wallX].isPath = true;
+        maze[wallY][wallX].isWall = false;
+      }
       maze[next.y][next.x].isPath = true;
       maze[next.y][next.x].isWall = false;
       
@@ -440,8 +442,8 @@ function createGuaranteedPath(maze: MazeCell[][], width: number, height: number,
 
 export function getMazeForLevel(level: number): MazeCell[][] {
   const config: MazeConfig = {
-    width: 12,
-    height: 10,
+    width: 10,
+    height: 8,
     difficulty: level
   };
   
