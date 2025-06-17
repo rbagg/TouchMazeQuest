@@ -39,6 +39,9 @@ export function generateMaze(config: MazeConfig): MazeCell[][] {
   // Generate maze pattern based on difficulty
   generateByStyle(maze, width, height, difficulty);
 
+  // Always ensure there's a guaranteed path from start to goal
+  createGuaranteedPath(maze, width, height, { x: 1, y: 1 }, { x: width - 2, y: height - 2 });
+  
   // Ensure start and goal are accessible
   maze[1][1].isPath = true;
   maze[1][1].isWall = false;
@@ -138,32 +141,39 @@ function generateSShape(maze: MazeCell[][], width: number, height: number) {
   }
 }
 
-// Level 4: Staircase pattern
+// Level 4: Staircase pattern (fixed for horizontal/vertical only)
 function generateStaircase(maze: MazeCell[][], width: number, height: number) {
   let x = 1, y = 1;
-  const stepSize = Math.max(1, Math.floor((width - 2) / 4));
+  const stepSize = 2;
   
-  while (x < width - 1 && y < height - 1) {
+  while (x < width - 2 && y < height - 2) {
     // Horizontal step
-    for (let i = 0; i < stepSize && x < width - 1; i++) {
+    for (let i = 0; i < stepSize && x < width - 2; i++) {
       maze[y][x].isPath = true;
       maze[y][x].isWall = false;
       x++;
     }
     
-    // Vertical step
-    for (let i = 0; i < stepSize && y < height - 1; i++) {
-      maze[y][x - 1].isPath = true;
-      maze[y][x - 1].isWall = false;
-      y++;
-    }
+    // Vertical connector down
+    maze[y + 1][x - 1].isPath = true;
+    maze[y + 1][x - 1].isWall = false;
+    y++;
+    
+    // Position for next step
+    x = x - 1;
   }
   
-  // Connect to goal
-  while (x < width - 1) {
-    maze[height - 2][x].isPath = true;
-    maze[height - 2][x].isWall = false;
+  // Connect remaining path to goal
+  while (x < width - 2) {
+    maze[y][x].isPath = true;
+    maze[y][x].isWall = false;
     x++;
+  }
+  
+  while (y < height - 2) {
+    maze[y][width - 2].isPath = true;
+    maze[y][width - 2].isWall = false;
+    y++;
   }
 }
 
@@ -212,36 +222,60 @@ function generateTraditionalMaze(maze: MazeCell[][], width: number, height: numb
   generateMazePath(maze, width, height, 0.6);
 }
 
-// Level 7: Circle pattern
+// Level 7: Rectangle loops pattern
 function generateCirclePattern(maze: MazeCell[][], width: number, height: number) {
+  // Create rectangular loops instead of circles
   const centerX = Math.floor(width / 2);
   const centerY = Math.floor(height / 2);
-  const radius = Math.min(centerX - 2, centerY - 2);
   
-  // Create concentric circles
-  for (let r = 1; r <= radius; r++) {
-    for (let angle = 0; angle < 360; angle += 30) {
-      const x = Math.round(centerX + r * Math.cos(angle * Math.PI / 180));
-      const y = Math.round(centerY + r * Math.sin(angle * Math.PI / 180));
-      
-      if (x >= 1 && x < width - 1 && y >= 1 && y < height - 1) {
-        maze[y][x].isPath = true;
-        maze[y][x].isWall = false;
+  // Outer rectangle
+  for (let x = 2; x < width - 2; x++) {
+    maze[2][x].isPath = true;
+    maze[2][x].isWall = false;
+    maze[height - 3][x].isPath = true;
+    maze[height - 3][x].isWall = false;
+  }
+  
+  for (let y = 2; y < height - 2; y++) {
+    maze[y][2].isPath = true;
+    maze[y][2].isWall = false;
+    maze[y][width - 3].isPath = true;
+    maze[y][width - 3].isWall = false;
+  }
+  
+  // Inner rectangle
+  if (centerX > 3 && centerY > 2) {
+    for (let x = centerX - 1; x <= centerX + 1; x++) {
+      if (x >= 1 && x < width - 1) {
+        maze[centerY - 1][x].isPath = true;
+        maze[centerY - 1][x].isWall = false;
+        maze[centerY + 1][x].isPath = true;
+        maze[centerY + 1][x].isWall = false;
+      }
+    }
+    
+    for (let y = centerY - 1; y <= centerY + 1; y++) {
+      if (y >= 1 && y < height - 1) {
+        maze[y][centerX - 1].isPath = true;
+        maze[y][centerX - 1].isWall = false;
+        maze[y][centerX + 1].isPath = true;
+        maze[y][centerX + 1].isWall = false;
       }
     }
   }
   
-  // Connect circles with radial paths
-  for (let angle = 0; angle < 360; angle += 90) {
-    for (let r = 1; r <= radius; r++) {
-      const x = Math.round(centerX + r * Math.cos(angle * Math.PI / 180));
-      const y = Math.round(centerY + r * Math.sin(angle * Math.PI / 180));
-      
-      if (x >= 1 && x < width - 1 && y >= 1 && y < height - 1) {
-        maze[y][x].isPath = true;
-        maze[y][x].isWall = false;
-      }
-    }
+  // Connect with straight connectors
+  maze[centerY][centerX].isPath = true;
+  maze[centerY][centerX].isWall = false;
+  
+  // Horizontal connectors
+  for (let x = 2; x <= centerX - 1; x++) {
+    maze[centerY][x].isPath = true;
+    maze[centerY][x].isWall = false;
+  }
+  for (let x = centerX + 1; x < width - 2; x++) {
+    maze[centerY][x].isPath = true;
+    maze[centerY][x].isWall = false;
   }
 }
 
@@ -421,23 +455,36 @@ function getUnvisitedNeighbors(pos: Position, visited: Set<string>, width: numbe
 }
 
 function createGuaranteedPath(maze: MazeCell[][], width: number, height: number, start: Position, goal: Position) {
-  // Simple path from start to goal
+  // Create a simple L-shaped path from start to goal
   let x = start.x;
   let y = start.y;
   
+  // Mark start
+  maze[y][x].isPath = true;
+  maze[y][x].isWall = false;
+  
   // Go right first
   while (x < goal.x) {
+    x++;
     maze[y][x].isPath = true;
     maze[y][x].isWall = false;
-    x++;
   }
   
-  // Then go down
+  // Then go down/up
   while (y < goal.y) {
+    y++;
     maze[y][x].isPath = true;
     maze[y][x].isWall = false;
-    y++;
   }
+  while (y > goal.y) {
+    y--;
+    maze[y][x].isPath = true;
+    maze[y][x].isWall = false;
+  }
+  
+  // Ensure goal is marked
+  maze[goal.y][goal.x].isPath = true;
+  maze[goal.y][goal.x].isWall = false;
 }
 
 export function getMazeForLevel(level: number): MazeCell[][] {
