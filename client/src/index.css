@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Open+Sans:wght@400;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Open+Sans:wght@400;600;700&display=swap');
 
 :root {
   --background: hsl(0, 0%, 100%);
@@ -32,11 +32,6 @@
   --sunny: hsl(50, 100%, 70%);
   --purple: hsl(233, 68%, 60%);
   --dark-gray: hsl(217, 33%, 17%);
-
-  /* New blue path color */
-  --path-blue: hsl(212, 92%, 55%);
-  --path-blue-hover: hsl(212, 92%, 60%);
-  --path-blue-border: hsl(212, 92%, 45%);
 }
 
 .dark {
@@ -138,19 +133,10 @@
   transition: all 0.2s ease;
 }
 
-/* UPDATED: Blue paths instead of purple */
-.maze-path {
-  background-color: var(--path-blue);
-  border: 2px solid var(--path-blue-border);
-}
-
-.maze-path:hover {
-  background-color: var(--path-blue-hover);
-}
+/* REMOVED: Old purple path styling - now handled in component */
 
 .maze-wall {
   background-color: hsl(210, 40%, 98%);
-  border: 1px solid hsl(210, 40%, 90%);
 }
 
 .player-dot {
@@ -214,32 +200,59 @@
   transform: scale(0.95);
 }
 
-/* NEW: Mobile touch optimization */
-.touch-manipulation {
-  touch-action: manipulation; /* Removes 300ms click delay */
-}
-
-/* UPDATED: Enhanced mobile touch targets */
+/* Enhanced mobile optimization */
 @media (max-width: 768px) {
-  .maze-cell {
-    min-height: 50px; /* Increased from 40px */
-    min-width: 50px;
+  /* Ensure text is readable on mobile */
+  body {
+    font-size: 16px; /* Prevent zoom on iOS */
   }
 
-  .player-dot {
-    min-width: 40px; /* Increased from 32px */
-    min-height: 40px;
-  }
-
-  /* Ensure buttons are large enough for fingers */
+  /* Larger touch targets for mobile */
   button {
     min-height: 44px;
     min-width: 44px;
+    padding: 12px;
   }
 
-  /* Make level selection buttons bigger on mobile */
+  /* Prevent zooming and improve touch response */
+  input, textarea, select {
+    font-size: 16px;
+    touch-action: manipulation;
+  }
+
+  /* Better spacing for mobile UI */
+  .maze-container {
+    padding: 8px;
+  }
+
+  /* Ensure proper overflow handling */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Improve button accessibility */
   .level-button {
     min-height: 60px;
     min-width: 60px;
+    font-size: 14px;
   }
+}
+
+/* Specific improvements for toddler interaction */
+.toddler-friendly {
+  /* Larger, more forgiving touch areas */
+  padding: 8px;
+  margin: 4px;
+}
+
+/* Smooth animations that aren't overwhelming */
+.gentle-animation {
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+}
+
+/* High contrast for better visibility */
+.high-contrast {
+  border: 3px solid #000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
