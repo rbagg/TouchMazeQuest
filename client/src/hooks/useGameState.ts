@@ -7,7 +7,10 @@ import {
   loadGameState,
   calculateLevelScore,
   isValidMove,
-  calculateProgress
+  calculateProgress,
+  shouldUseFogOfWar,
+  getFogOfWarRadius,
+  getToddlerFeatures
 } from "@/lib/gameLogic";
 import { getMazeForLevel } from "@/lib/mazeGenerator";
 
@@ -56,12 +59,13 @@ export function useGameState() {
 
     setMoveCount(prev => prev + 1);
 
-    // Update explored cells for fog of war
+    // IMPROVED: Dynamic fog of war radius based on level
     const newExploredCells = new Set(gameState.exploredCells);
+    const fogRadius = getFogOfWarRadius(gameState.currentLevel);
 
-    // Add current position and adjacent cells to explored
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
+    // Add current position and surrounding cells based on radius
+    for (let dy = -fogRadius; dy <= fogRadius; dy++) {
+      for (let dx = -fogRadius; dx <= fogRadius; dx++) {
         const newX = x + dx;
         const newY = y + dy;
         if (newX >= 0 && newX < currentMaze[0]?.length && newY >= 0 && newY < currentMaze.length) {
@@ -79,6 +83,7 @@ export function useGameState() {
     // Check if player reached the goal
     if (targetCell.isGoal) {
       const levelScore = calculateLevelScore(gameState.currentLevel, moveCount + 1);
+      const toddlerFeatures = getToddlerFeatures(gameState.currentLevel);
 
       setGameState(prev => ({
         ...prev,
@@ -91,66 +96,87 @@ export function useGameState() {
         progress: 100
       }));
 
+      // IMPROVED: Longer celebration for early levels
       setTimeout(() => {
         setShowSuccess(true);
       }, 500);
+
+      // Auto-advance to next level after celebration for early levels
+      if (gameState.currentLevel <= 3) {
+        setTimeout(() => {
+          nextLevel();
+        }, toddlerFeatures.celebrationDuration);
+      }
     }
   }, [gameState.playerPosition, gameState.exploredCells, currentMaze, moveCount, gameState.currentLevel]);
 
   const restartMaze = useCallback(() => {
     setGameState(prev => ({
       ...prev,
-      playerPosition: { x: 1, y: 1 },
+      playerPosition: { x: 0, y: 0 }, // FIXED: Consistent start position
       isComplete: false,
       progress: 0,
-      exploredCells: new Set(['1,1'])
+      exploredCells: new Set(['0,0']) // FIXED: Match starting position
     }));
     setMoveCount(0);
     setShowSuccess(false);
   }, []);
 
   const showHint = useCallback(() => {
+    const toddlerFeatures = getToddlerFeatures(gameState.currentLevel);
+
     setGameState(prev => ({ ...prev, showingHint: true }));
+
+    // IMPROVED: Longer hints for early levels, shorter for advanced
+    const hintDuration = toddlerFeatures.showHintsEasily ? 4000 : 2000;
+
     setTimeout(() => {
       setGameState(prev => ({ ...prev, showingHint: false }));
-    }, 3000); // Longer hint duration for children
-  }, []);
+    }, hintDuration);
+  }, [gameState.currentLevel]);
 
   const nextLevel = useCallback(() => {
     const newLevel = gameState.currentLevel + 1;
-    if (newLevel <= 15) { // Increased max levels
+    // IMPROVED: Support more levels (up to 50)
+    if (newLevel <= 50) {
       const newMaze = getMazeForLevel(newLevel);
       setCurrentMaze(newMaze);
       setGameState(prev => ({
         ...prev,
         currentLevel: newLevel,
-        playerPosition: { x: 1, y: 1 },
+        playerPosition: { x: 0, y: 0 }, // FIXED: Consistent start position
         isComplete: false,
         progress: 0,
-        exploredCells: new Set(['1,1']),
-        useFogOfWar: newLevel >= 12 // CHANGED: Enable fog of war starting from level 12 instead of 8
+        exploredCells: new Set(['0,0']), // FIXED: Match starting position
+        useFogOfWar: shouldUseFogOfWar(newLevel) // IMPROVED: Dynamic fog of war
       }));
       setMoveCount(0);
+      setShowSuccess(false);
     }
   }, [gameState.currentLevel]);
 
   const selectLevel = useCallback((level: number) => {
-    if (level <= gameState.unlockedLevels) {
+    // FIXED: Allow jumping to any level (no unlocking requirement)
+    if (level >= 1 && level <= 50) {
       const newMaze = getMazeForLevel(level);
       setCurrentMaze(newMaze);
       setGameState(prev => ({
         ...prev,
         currentLevel: level,
-        playerPosition: { x: 1, y: 1 },
+        playerPosition: { x: 0, y: 0 }, // FIXED: Consistent start position
         isComplete: false,
         progress: 0,
-        exploredCells: new Set(['1,1']),
-        useFogOfWar: level >= 12 // CHANGED: Enable fog of war starting from level 12 instead of 8
+        exploredCells: new Set(['0,0']), // FIXED: Match starting position
+        useFogOfWar: shouldUseFogOfWar(level) // IMPROVED: Dynamic fog of war
       }));
       setMoveCount(0);
       setShowSuccess(false);
     }
-  }, [gameState.unlockedLevels]);
+  }, []);
+
+  const getCurrentFeatures = useCallback(() => {
+    return getToddlerFeatures(gameState.currentLevel);
+  }, [gameState.currentLevel]);
 
   return {
     gameState,
@@ -161,6 +187,9 @@ export function useGameState() {
     nextLevel,
     selectLevel,
     showSuccess,
-    setShowSuccess
+    setShowSuccess,
+    getCurrentFeatures, // NEW: Access to toddler-friendly features
+    fogRadius: getFogOfWarRadius(gameState.currentLevel), // NEW: Current fog radius
+    moveCount // NEW: Current move count for display
   };
 }

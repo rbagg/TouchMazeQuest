@@ -2,10 +2,71 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Maze Adventure - Kids Puzzle Game</title>
     <meta name="description" content="A fun, educational maze game designed for 4-year-olds. Simple touch controls, colorful graphics, and progressive difficulty levels to keep young minds engaged." />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Enhanced mobile optimization -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Maze Adventure">
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- Safe area support for notched devices -->
+    <style>
+      :root {
+        --safe-area-inset-top: env(safe-area-inset-top);
+        --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        --safe-area-inset-left: env(safe-area-inset-left);
+        --safe-area-inset-right: env(safe-area-inset-right);
+      }
+
+      /* Prevent iOS bounce effect */
+      body {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #root {
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Prevent zoom on input focus (iOS) */
+      input, textarea, select {
+        font-size: 16px !important;
+      }
+
+      /* Enhanced touch targets for toddlers */
+      button, .touchable {
+        min-height: 60px;
+        min-width: 60px;
+      }
+
+      /* Disable text selection for better touch experience */
+      * {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      /* But allow selection for text content that should be selectable */
+      p, div[contenteditable], input, textarea {
+        -webkit-user-select: auto;
+        -khtml-user-select: auto;
+        -moz-user-select: auto;
+        -ms-user-select: auto;
+        user-select: auto;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

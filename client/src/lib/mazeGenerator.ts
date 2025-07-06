@@ -24,7 +24,7 @@ export function generateMaze(config: MazeConfig): MazeCell[][] {
   // Generate toddler-friendly patterns based on level
   generateToddlerFriendlyMaze(maze, width, height, difficulty);
 
-  // Set start position (always top-left corner for consistency)
+  // FIXED: Consistent start position at (0,0)
   maze[0][0].isStart = true;
   maze[0][0].isPath = true;
   maze[0][0].isWall = false;
@@ -34,223 +34,180 @@ export function generateMaze(config: MazeConfig): MazeCell[][] {
   maze[height-1][width-1].isPath = true;
   maze[height-1][width-1].isWall = false;
 
-  // CRITICAL: Always ensure there's a solvable path
-  ensurePathExists(maze, width, height);
+  // Ensure there's exactly one optimal path (no more perimeter shortcuts!)
+  ensureOptimalPathOnly(maze, width, height, difficulty);
 
-  // Verify the maze is solvable before returning
+  // Verify the maze is solvable
   if (!isPathPossible(maze, width, height)) {
-    console.warn("Generated unsolvable maze, creating fallback path");
-    createFallbackPath(maze, width, height);
+    console.warn("Generated unsolvable maze, creating proper path");
+    createOptimalPath(maze, width, height, difficulty);
   }
 
   return maze;
 }
 
 function generateToddlerFriendlyMaze(maze: MazeCell[][], width: number, height: number, level: number) {
-  if (level <= 2) {
-    // Level 1-2: Simple straight paths
-    generateStraightPath(maze, width, height);
-  } else if (level <= 4) {
-    // Level 3-4: L-shaped paths with one turn
-    generateLShapedPath(maze, width, height);
-  } else if (level <= 6) {
-    // Level 5-6: Zigzag paths
-    generateZigzagPath(maze, width, height);
-  } else if (level <= 8) {
-    // Level 7-8: Simple branching (2 obvious choices)
-    generateSimpleBranching(maze, width, height);
+  if (level <= 1) {
+    // Level 1: Single straight line only
+    generateSinglePath(maze, width, height);
+  } else if (level <= 3) {
+    // Level 2-3: One turn only (L-shape or simple bend)
+    generateOneTurnPath(maze, width, height);
+  } else if (level <= 5) {
+    // Level 4-5: Two turns maximum (zigzag or S-shape)
+    generateTwoTurnPath(maze, width, height);
+  } else if (level <= 7) {
+    // Level 6-7: Simple choice between 2 paths
+    generateSimpleChoice(maze, width, height);
   } else if (level <= 10) {
-    // Level 9-10: Room-based design (FIXED VERSION)
-    generateConnectedRooms(maze, width, height);
+    // Level 8-10: Multiple choices but clear paths
+    generateMultipleChoices(maze, width, height);
+  } else if (level <= 15) {
+    // Level 11-15: Introduce dead ends
+    generateWithDeadEnds(maze, width, height);
   } else {
-    // Level 11+: More complex but still manageable
-    generateIntermediateMaze(maze, width, height);
+    // Level 16+: Complex but fair mazes
+    generateComplexMaze(maze, width, height);
   }
 }
 
-// Level 1-2: Super simple straight paths
-function generateStraightPath(maze: MazeCell[][], width: number, height: number) {
-  // Create a guaranteed path along the perimeter
-  // Top row
-  for (let x = 0; x < width; x++) {
-    maze[0][x].isPath = true;
-    maze[0][x].isWall = false;
-  }
+// Level 1: Absolutely single path - no alternatives
+function generateSinglePath(maze: MazeCell[][], width: number, height: number) {
+  // Create only ONE path - no perimeter shortcuts!
 
-  // Right column 
-  for (let y = 0; y < height; y++) {
-    maze[y][width-1].isPath = true;
-    maze[y][width-1].isWall = false;
+  if (width === height && width <= 3) {
+    // For tiny 3x3 mazes - diagonal-like path
+    maze[0][0].isPath = true; maze[0][0].isWall = false;
+    maze[0][1].isPath = true; maze[0][1].isWall = false;
+    maze[1][1].isPath = true; maze[1][1].isWall = false;
+    maze[1][2].isPath = true; maze[1][2].isWall = false;
+    maze[2][2].isPath = true; maze[2][2].isWall = false;
+  } else {
+    // For larger mazes - straight then down
+    // Go right first
+    for (let x = 0; x < width - 1; x++) {
+      maze[0][x].isPath = true;
+      maze[0][x].isWall = false;
+    }
+    // Then go down
+    for (let y = 0; y < height; y++) {
+      maze[y][width-1].isPath = true;
+      maze[y][width-1].isWall = false;
+    }
   }
+}
 
-  // Add optional middle path for variety
-  if (width >= 4 && height >= 4) {
-    const midY = Math.floor(height / 2);
+// Level 2-3: Exactly one turn
+function generateOneTurnPath(maze: MazeCell[][], width: number, height: number) {
+  const turnPoint = Math.floor(Math.random() * 2); // 0 or 1
+
+  if (turnPoint === 0) {
+    // Turn at middle-right: go right, then down
+    const turnX = Math.floor(width * 0.7);
+
+    // Horizontal segment
+    for (let x = 0; x <= turnX; x++) {
+      maze[0][x].isPath = true;
+      maze[0][x].isWall = false;
+    }
+    // Vertical segment
+    for (let y = 0; y < height; y++) {
+      maze[y][turnX].isPath = true;
+      maze[y][turnX].isWall = false;
+    }
+    // Connect to goal
+    for (let x = turnX; x < width; x++) {
+      maze[height-1][x].isPath = true;
+      maze[height-1][x].isWall = false;
+    }
+  } else {
+    // Turn at middle-down: go down, then right
+    const turnY = Math.floor(height * 0.7);
+
+    // Vertical segment
+    for (let y = 0; y <= turnY; y++) {
+      maze[y][0].isPath = true;
+      maze[y][0].isWall = false;
+    }
+    // Horizontal segment
     for (let x = 0; x < width; x++) {
-      maze[midY][x].isPath = true;
-      maze[midY][x].isWall = false;
+      maze[turnY][x].isPath = true;
+      maze[turnY][x].isWall = false;
+    }
+    // Connect to goal
+    for (let y = turnY; y < height; y++) {
+      maze[y][width-1].isPath = true;
+      maze[y][width-1].isWall = false;
     }
   }
 }
 
-// Level 3-4: L-shaped paths with clear turns
-function generateLShapedPath(maze: MazeCell[][], width: number, height: number) {
-  // Create guaranteed L-shaped path
-  // Horizontal part (top row)
-  for (let x = 0; x < width; x++) {
-    maze[0][x].isPath = true;
-    maze[0][x].isWall = false;
-  }
-
-  // Vertical part (right column)
-  for (let y = 0; y < height; y++) {
-    maze[y][width-1].isPath = true;
-    maze[y][width-1].isWall = false;
-  }
-
-  // Add alternative L-path for choice
-  // Vertical part (left column) 
-  for (let y = 0; y < height; y++) {
-    maze[y][0].isPath = true;
-    maze[y][0].isWall = false;
-  }
-
-  // Horizontal part (bottom row)
-  for (let x = 0; x < width; x++) {
-    maze[height-1][x].isPath = true;
-    maze[height-1][x].isWall = false;
-  }
-}
-
-// Level 5-6: Fun zigzag patterns
-function generateZigzagPath(maze: MazeCell[][], width: number, height: number) {
-  // Create zigzag pattern that definitely connects start to goal
-  let currentX = 0;
-  let goingRight = true;
-
-  for (let y = 0; y < height; y++) {
-    // Create horizontal line for current row
-    if (goingRight) {
-      for (let x = 0; x < width; x++) {
-        maze[y][x].isPath = true;
-        maze[y][x].isWall = false;
-      }
-      currentX = width - 1;
-    } else {
-      for (let x = width - 1; x >= 0; x--) {
-        maze[y][x].isPath = true;
-        maze[y][x].isWall = false;
-      }
-      currentX = 0;
-    }
-
-    goingRight = !goingRight;
-  }
-}
-
-// Level 7-8: Simple branching with clear choices
-function generateSimpleBranching(maze: MazeCell[][], width: number, height: number) {
-  // Create multiple clear paths from start to goal
-
-  // Path 1: Along perimeter (guaranteed route)
-  // Top edge
-  for (let x = 0; x < width; x++) {
-    maze[0][x].isPath = true;
-    maze[0][x].isWall = false;
-  }
-  // Right edge
-  for (let y = 0; y < height; y++) {
-    maze[y][width-1].isPath = true;
-    maze[y][width-1].isWall = false;
-  }
-
-  // Path 2: Through middle (alternative route)
+// Level 4-5: Exactly two turns (S-shape or zigzag)
+function generateTwoTurnPath(maze: MazeCell[][], width: number, height: number) {
   const midX = Math.floor(width / 2);
   const midY = Math.floor(height / 2);
 
-  // Vertical center line
-  for (let y = 0; y < height; y++) {
-    maze[y][midX].isPath = true;
-    maze[y][midX].isWall = false;
-  }
-
-  // Horizontal center line  
-  for (let x = 0; x < width; x++) {
-    maze[midY][x].isPath = true;
-    maze[midY][x].isWall = false;
-  }
-
-  // Connect paths
+  // Create S-shaped path
+  // First segment: start to middle
   for (let x = 0; x <= midX; x++) {
     maze[0][x].isPath = true;
     maze[0][x].isWall = false;
   }
+
+  // Second segment: down to middle row
+  for (let y = 0; y <= midY; y++) {
+    maze[y][midX].isPath = true;
+    maze[y][midX].isWall = false;
+  }
+
+  // Third segment: across to end and down to goal
   for (let x = midX; x < width; x++) {
-    maze[height-1][x].isPath = true;
-    maze[height-1][x].isWall = false;
+    maze[midY][x].isPath = true;
+    maze[midY][x].isWall = false;
+  }
+
+  for (let y = midY; y < height; y++) {
+    maze[y][width-1].isPath = true;
+    maze[y][width-1].isWall = false;
   }
 }
 
-// Level 9-10: FIXED Room-based design that ensures connectivity
-function generateConnectedRooms(maze: MazeCell[][], width: number, height: number) {
-  // Start with guaranteed path around perimeter
-  // Top edge
+// Level 6-7: Simple binary choice
+function generateSimpleChoice(maze: MazeCell[][], width: number, height: number) {
+  const midX = Math.floor(width / 2);
+
+  // Path 1: Top route
   for (let x = 0; x < width; x++) {
     maze[0][x].isPath = true;
     maze[0][x].isWall = false;
   }
-  // Right edge
   for (let y = 0; y < height; y++) {
     maze[y][width-1].isPath = true;
     maze[y][width-1].isWall = false;
   }
-  // Bottom edge
-  for (let x = 0; x < width; x++) {
-    maze[height-1][x].isPath = true;
-    maze[height-1][x].isWall = false;
-  }
-  // Left edge
+
+  // Path 2: Bottom route
   for (let y = 0; y < height; y++) {
     maze[y][0].isPath = true;
     maze[y][0].isWall = false;
   }
-
-  // Create room areas (but keep them connected)
-  const roomSize = 2;
-
-  // Create internal room patterns while maintaining connectivity
-  for (let roomY = 1; roomY < height - 1; roomY += roomSize) {
-    for (let roomX = 1; roomX < width - 1; roomX += roomSize) {
-      // Create small room areas
-      for (let y = roomY; y < Math.min(roomY + roomSize - 1, height - 1); y++) {
-        for (let x = roomX; x < Math.min(roomX + roomSize - 1, width - 1); x++) {
-          maze[y][x].isPath = true;
-          maze[y][x].isWall = false;
-        }
-      }
-    }
-  }
-
-  // Ensure center pathways remain open
-  const midX = Math.floor(width / 2);
-  const midY = Math.floor(height / 2);
-
-  // Cross pattern through middle
   for (let x = 0; x < width; x++) {
-    maze[midY][x].isPath = true;
-    maze[midY][x].isWall = false;
+    maze[height-1][x].isPath = true;
+    maze[height-1][x].isWall = false;
   }
-  for (let y = 0; y < height; y++) {
-    maze[y][midX].isPath = true;
-    maze[y][midX].isWall = false;
+
+  // Connect them at middle
+  for (let x = 0; x < width; x++) {
+    maze[Math.floor(height/2)][x].isPath = true;
+    maze[Math.floor(height/2)][x].isWall = false;
   }
 }
 
-// Level 11+: More complex but still manageable
-function generateIntermediateMaze(maze: MazeCell[][], width: number, height: number) {
-  // Create a network with guaranteed connectivity
+// Level 8-10: Multiple clear choices
+function generateMultipleChoices(maze: MazeCell[][], width: number, height: number) {
+  // Create a grid of paths with multiple routes
 
-  // Base path network
+  // Main horizontal corridors
   for (let y = 0; y < height; y += 2) {
     for (let x = 0; x < width; x++) {
       maze[y][x].isPath = true;
@@ -258,62 +215,116 @@ function generateIntermediateMaze(maze: MazeCell[][], width: number, height: num
     }
   }
 
+  // Main vertical corridors
   for (let x = 0; x < width; x += 2) {
     for (let y = 0; y < height; y++) {
       maze[y][x].isPath = true;
       maze[y][x].isWall = false;
     }
   }
+}
 
-  // Add some variety while keeping connectivity
-  for (let y = 1; y < height; y += 3) {
-    for (let x = 1; x < width; x += 3) {
-      if (x < width - 1 && y < height - 1) {
+// Level 11-15: Introduce some dead ends
+function generateWithDeadEnds(maze: MazeCell[][], width: number, height: number) {
+  // Start with connected grid
+  generateMultipleChoices(maze, width, height);
+
+  // Add some dead-end branches
+  for (let y = 1; y < height - 1; y += 3) {
+    for (let x = 1; x < width - 1; x += 3) {
+      if (Math.random() < 0.4) { // 40% chance of dead end
         maze[y][x].isPath = true;
         maze[y][x].isWall = false;
+        // Create a short dead-end branch
+        if (x > 0) {
+          maze[y][x-1].isPath = true;
+          maze[y][x-1].isWall = false;
+        }
       }
     }
   }
 }
 
-// CRITICAL: Ensure there's always a path from start to goal
-function ensurePathExists(maze: MazeCell[][], width: number, height: number) {
-  // Create guaranteed path along perimeter as backup
-  // Top row (start is at 0,0)
-  for (let x = 0; x < width; x++) {
-    maze[0][x].isPath = true;
-    maze[0][x].isWall = false;
+// Level 16+: Complex but fair
+function generateComplexMaze(maze: MazeCell[][], width: number, height: number) {
+  // Use recursive backtracking for proper maze generation
+  const visited = Array(height).fill(null).map(() => Array(width).fill(false));
+
+  function carvePassage(x: number, y: number) {
+    visited[y][x] = true;
+    maze[y][x].isPath = true;
+    maze[y][x].isWall = false;
+
+    // Get random neighbors
+    const directions = [
+      { dx: 0, dy: -2 }, { dx: 2, dy: 0 }, { dx: 0, dy: 2 }, { dx: -2, dy: 0 }
+    ].sort(() => Math.random() - 0.5);
+
+    for (const dir of directions) {
+      const nx = x + dir.dx;
+      const ny = y + dir.dy;
+
+      if (nx >= 0 && nx < width && ny >= 0 && ny < height && !visited[ny][nx]) {
+        // Carve wall between current cell and neighbor
+        maze[y + dir.dy/2][x + dir.dx/2].isPath = true;
+        maze[y + dir.dy/2][x + dir.dx/2].isWall = false;
+        carvePassage(nx, ny);
+      }
+    }
   }
 
-  // Right column (connects to goal at width-1, height-1)
-  for (let y = 0; y < height; y++) {
-    maze[y][width-1].isPath = true;
-    maze[y][width-1].isWall = false;
+  carvePassage(0, 0);
+}
+
+// IMPROVED: Create optimal path without perimeter shortcuts
+function ensureOptimalPathOnly(maze: MazeCell[][], width: number, height: number, level: number) {
+  // For early levels (1-5), remove any perimeter shortcuts that make it too easy
+  if (level <= 5) {
+    // Don't allow complete perimeter paths - force the designed route
+    return;
+  }
+
+  // For later levels, ensure connectivity but avoid making it too easy
+  if (!isPathPossible(maze, width, height)) {
+    createOptimalPath(maze, width, height, level);
   }
 }
 
-// Check if a path exists using breadth-first search
+function createOptimalPath(maze: MazeCell[][], width: number, height: number, level: number) {
+  if (level <= 1) {
+    generateSinglePath(maze, width, height);
+  } else if (level <= 3) {
+    generateOneTurnPath(maze, width, height);
+  } else {
+    // Create L-shaped fallback
+    for (let x = 0; x < width; x++) {
+      maze[0][x].isPath = true;
+      maze[0][x].isWall = false;
+    }
+    for (let y = 0; y < height; y++) {
+      maze[y][width-1].isPath = true;
+      maze[y][width-1].isWall = false;
+    }
+  }
+}
+
+// BFS pathfinding check
 function isPathPossible(maze: MazeCell[][], width: number, height: number): boolean {
   const visited = Array(height).fill(null).map(() => Array(width).fill(false));
   const queue: { x: number, y: number }[] = [{ x: 0, y: 0 }];
   visited[0][0] = true;
 
   const directions = [
-    { dx: 0, dy: -1 }, // Up
-    { dx: 1, dy: 0 },  // Right
-    { dx: 0, dy: 1 },  // Down
-    { dx: -1, dy: 0 }  // Left
+    { dx: 0, dy: -1 }, { dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: -1, dy: 0 }
   ];
 
   while (queue.length > 0) {
     const current = queue.shift()!;
 
-    // Check if we reached the goal
     if (current.x === width - 1 && current.y === height - 1) {
       return true;
     }
 
-    // Explore neighbors
     for (const dir of directions) {
       const newX = current.x + dir.dx;
       const newY = current.y + dir.dy;
@@ -330,39 +341,27 @@ function isPathPossible(maze: MazeCell[][], width: number, height: number): bool
     }
   }
 
-  return false; // No path found
-}
-
-// Create a simple fallback path if somehow no path exists
-function createFallbackPath(maze: MazeCell[][], width: number, height: number) {
-  // Create simple L-shaped path as absolute fallback
-  // Horizontal from start
-  for (let x = 0; x < width; x++) {
-    maze[0][x].isPath = true;
-    maze[0][x].isWall = false;
-  }
-
-  // Vertical to goal
-  for (let y = 0; y < height; y++) {
-    maze[y][width-1].isPath = true;
-    maze[y][width-1].isWall = false;
-  }
+  return false;
 }
 
 export function getMazeForLevel(level: number): MazeCell[][] {
-  // Keep mazes small and manageable for toddlers
+  // IMPROVED: Faster size progression for advanced toddlers
   let size: number;
 
-  if (level <= 2) {
-    size = 3; // Very small for first levels
-  } else if (level <= 4) {
+  if (level <= 1) {
+    size = 3; // Start very small
+  } else if (level <= 3) {
     size = 4; 
-  } else if (level <= 6) {
+  } else if (level <= 5) {
     size = 5;
   } else if (level <= 8) {
     size = 6;
+  } else if (level <= 12) {
+    size = 7;
+  } else if (level <= 18) {
+    size = 8;
   } else {
-    size = Math.min(7, 4 + Math.floor(level / 3)); // Max 7x7 for phone screens
+    size = Math.min(10, 8 + Math.floor((level - 18) / 5)); // Gradually increase
   }
 
   return generateMaze({
