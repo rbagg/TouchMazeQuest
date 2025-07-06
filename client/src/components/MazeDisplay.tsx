@@ -81,6 +81,18 @@ const THEMES: MazeTheme[] = [
   }
 ];
 
+// Helper function to get goal name for dynamic text
+function getGoalName(theme: MazeTheme): string {
+  switch(theme.name) {
+    case "Ocean Adventure": return "fish";
+    case "Forest Quest": return "tree"; 
+    case "Space Mission": return "star";
+    case "Garden Party": return "flower";
+    case "Car Race": return "finish line";
+    default: return "goal";
+  }
+}
+
 interface MazeDisplayProps {
   maze: MazeCell[][];
   playerPosition: Position;
@@ -356,8 +368,8 @@ export default function MazeDisplay({
         <p className="text-base text-gray-700 font-semibold">
           <span className="text-2xl mr-2">🎯</span>
           {useFogOfWar 
-            ? "Explore to find the flag!" 
-            : `Tap the colored squares to reach the ${currentTheme.name.includes('Ocean') ? 'fish' : currentTheme.name.includes('Forest') ? 'tree' : currentTheme.name.includes('Space') ? 'star' : currentTheme.name.includes('Garden') ? 'flower' : 'flag'}!`
+            ? `Explore to find the ${getGoalName(currentTheme)}!` 
+            : `Tap the colored squares to reach the ${getGoalName(currentTheme)}!`
           }
         </p>
       </div>

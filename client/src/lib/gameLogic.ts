@@ -91,15 +91,17 @@ export function calculateProgress(
   return Math.max(0, Math.min(100, ((maxDistance - distance) / maxDistance) * 100));
 }
 
-// IMPROVED: Better fog of war logic for advanced toddlers
+// IMPROVED: Alternating fog of war logic
 export function shouldUseFogOfWar(level: number): boolean {
-  // Introduce fog of war earlier for advanced toddlers
+  // Make fog of war alternate so it's not always on
   if (level <= 3) {
     return false; // No fog for very early levels
-  } else if (level <= 8) {
-    return true; // Light fog for medium levels
+  } else if (level <= 6) {
+    return level % 2 === 0; // Alternate: levels 4, 6 have fog
+  } else if (level <= 12) {
+    return level % 3 !== 0; // Mostly on, but 9, 12 have no fog for a break
   } else {
-    return true; // Full fog for advanced levels
+    return level % 4 !== 0; // Advanced levels: off every 4th level
   }
 }
 
