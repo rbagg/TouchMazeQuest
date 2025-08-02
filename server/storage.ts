@@ -1,39 +1,51 @@
-import { users, type User, type InsertUser } from "@shared/schema";
+// server/storage.ts
+import { db } from './db';
+import { users, gameProgress, type User, type NewUser, type GameProgress, type NewGameProgress } from '../shared/schema';
+import { eq } from 'drizzle-orm';
 
-// modify the interface with any CRUD methods
-// you might need
-
-export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-}
-
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  currentId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.currentId = 1;
-  }
-
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+export const storage = {
+  // User operations
+  async createUser(userData: NewUser): Promise<User> {
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
-  }
-}
+  },
 
-export const storage = new MemStorage();
+  async getUserByUsername(username: string): Promise<User | null> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || null;
+  },
+
+  async getUserById(id: number): Promise<User | null> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || null;
+  },
+
+  // Game progress operations
+  async createGameProgress(progressData: NewGameProgress): Promise<GameProgress> {
+    const [progress] = await db.insert(gameProgress).values(progressData).returning();
+    return progress;
+  },
+
+  async getGameProgress(userId: number): Promise<GameProgress | null> {
+    const [progress] = await db.select().from(gameProgress).where(eq(gameProgress.userId, userId));
+    return progress || null;
+  },
+
+  async updateGameProgress(userId: number, updates: Partial<NewGameProgress>): Promise<GameProgress> {
+    const [progress] = await db.update(gameProgress)
+      .set({ ...updates, lastPlayed: new Date() })
+      .where(eq(gameProgress.userId, userId))
+      .returning();
+    return progress;
+  },
+
+  async getOrCreateGameProgress(userId: number): Promise<GameProgress> {
+    let progress = await this.getGameProgress(userId);
+    
+    if (!progress) {
+      progress = await this.createGameProgress({ userId });
+    }
+    
+    return progress;
+  }
+};

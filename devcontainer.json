@@ -1,0 +1,55 @@
+{
+  "name": "Maze Adventure Game",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "typescript.preferences.includePackageJsonAutoImports": "auto",
+        "npm.packageManager": "npm",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "files.associations": {
+          "*.tsx": "typescriptreact",
+          "*.ts": "typescript"
+        }
+      },
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-json",
+        "formulahendry.auto-rename-tag",
+        "christian-kohler.path-intellisense",
+        "ms-vscode.vscode-npm-script"
+      ]
+    }
+  },
+
+  "forwardPorts": [5000],
+  "portsAttributes": {
+    "5000": {
+      "label": "Maze Adventure Game",
+      "protocol": "https"
+    }
+  },
+
+  "postCreateCommand": "npm install",
+  "postStartCommand": "npm run dev",
+
+  "remoteEnv": {
+    "NODE_ENV": "development"
+  }
+}

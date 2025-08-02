@@ -1,32 +1,25 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
+// shared/schema.ts
+import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  username: text("username").unique().notNull(),
   password: text("password").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const gameProgress = pgTable("game_progress", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
-  currentLevel: integer("current_level").notNull().default(1),
-  completedLevels: integer("completed_levels").array().notNull().default([]),
-  totalScore: integer("total_score").notNull().default(0),
-  unlockedLevels: integer("unlocked_levels").notNull().default(1),
+  currentLevel: integer("current_level").default(1),
+  completedLevels: integer("completed_levels").array().default([]),
+  totalScore: integer("total_score").default(0),
+  unlockedLevels: integer("unlocked_levels").default(1),
+  lastPlayed: timestamp("last_played").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
-
-export const insertGameProgressSchema = createInsertSchema(gameProgress).omit({
-  id: true,
-});
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
 export type GameProgress = typeof gameProgress.$inferSelect;
-export type InsertGameProgress = z.infer<typeof insertGameProgressSchema>;
+export type NewGameProgress = typeof gameProgress.$inferInsert;
